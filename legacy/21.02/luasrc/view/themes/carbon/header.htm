@@ -91,11 +91,10 @@ if not fs.access(langfile) then locale = locale:match("^([a-z]+)") or "en" end
 <% elseif not (blank_page) then %>
 	<div class="cb-app" data-traffic-source="<%=traffic%>"<% if dashboard_attr ~= "" then %> data-dashboard="<%=esc(dashboard_attr)%>"<% end %><% if simple_menu_attr ~= "" then %> data-simple-menu="<%=esc(simple_menu_attr)%>"<% end %>>
 		<aside class="cb-sidebar" id="cb-sidebar">
-			<button type="button" class="cb-collapse" id="cb-collapse" aria-label="Collapse sidebar"></button>
 			<a class="cb-brand" href="<%=dispatcher.build_url()%>"><img class="cb-brand-logo" src="<%=logo%>" alt=""><span class="cb-brand-text"><strong><%=esc(hostname)%></strong><% if model ~= "" then %><small><%=esc(model)%></small><% end %></span></a>
 			<div class="cb-mode" id="cb-mode"></div><nav class="cb-nav" id="topmenu" style="display:none"></nav><div class="cb-sidebar-foot" id="cb-sidebar-foot"></div>
 		</aside>
 		<div class="cb-scrim" id="cb-scrim"></div>
-		<main class="cb-main"><header class="cb-toolbar"><button type="button" class="cb-burger" id="cb-burger" aria-label="Menu"><span></span></button><div class="cb-title" id="cb-title"><%=esc(page_title)%></div><div class="cb-appearance" id="cb-appearance"></div><div id="indicators" class="cb-indicators"></div></header>
+		<main class="cb-main"><header class="cb-toolbar"><button type="button" class="cb-burger" id="cb-burger" aria-label="Menu"><span></span></button><div class="cb-title" id="cb-title"><%=esc(page_title)%></div><div class="cb-appearance" id="cb-appearance"></div><div class="cb-lang" id="cb-lang"></div><div id="indicators" class="cb-indicators"></div></header>
 		<div id="maincontent" class="cb-content"><div id="tabmenu" style="display:none"></div>
 <% end %>

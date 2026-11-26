@@ -58,16 +58,33 @@ const shortName = (code, zhCount) => {
 		return zhCount > 1 ? (/hant|tw|hk|mo/i.test(code) ? '繁' : '简') : '中';
 	return code.slice(0, 2).toUpperCase();
 };
+/* Languages the Carbon theme ships catalogues for (htdocs/luci-static/carbon/i18n).
+   They are always offered, even when the matching LuCI translation package is not
+   installed — theme strings translate regardless; untranslated LuCI core strings
+   fall back to English until luci-i18n-base-<lang> is installed. */
+const THEME_LANGS = {
+	'de': 'Deutsch', 'es': 'Español', 'fr': 'Français', 'it': 'Italiano',
+	'ja': '日本語', 'ko': '한국어', 'pt-br': 'Português (Brasil)', 'ru': 'Русский',
+	'tr': 'Türkçe', 'vi': 'Tiếng Việt', 'zh-cn': '简体中文', 'zh-tw': '繁體中文'
+};
 const language = {
 	current: document.documentElement.getAttribute('lang') || 'en',
 	load: () => Promise.all([
 		callUciGet('luci', 'languages').catch(() => ({})),
 		callUciGet('luci', 'main').catch(() => ({}))
 	]).then(([langs, main]) => {
-		const codes = Object.keys(langs || {}).filter((k) => k.charAt(0) !== '.' && k !== 'en' && /^[A-Za-z]{2,3}([_-][A-Za-z0-9]{2,8})?$/.test(k)).sort();
+		const installed = Object.keys(langs || {}).filter((k) => k.charAt(0) !== '.' && k !== 'en' && /^[A-Za-z]{2,3}([_-][A-Za-z0-9]{2,8})?$/.test(k));
+		/* merge installed catalogues with the bundled ones, keyed by their
+		   normalised code so 'zh_cn' (installed) and 'zh-cn' (bundled) unify */
+		const merged = {};
+		installed.forEach((k) => { merged[k.toLowerCase().replace(/_/g, '-')] = { code: k, label: nativeName(langs[k], k) }; });
+		Object.keys(THEME_LANGS).forEach((k) => {
+			if (!merged[k]) merged[k] = { code: k, label: THEME_LANGS[k] };
+		});
+		const codes = Object.keys(merged).sort();
 		const zhCount = codes.filter((k) => /^zh/i.test(k)).length;
 		const options = [{ code: 'en', label: 'English', short: 'EN' }].concat(codes.map((k) => ({
-			code: k, label: nativeName(langs[k], k), short: shortName(k, zhCount)
+			code: merged[k].code, label: merged[k].label, short: shortName(k, zhCount)
 		})));
 		const lang = main && main.lang;
 		return { options: options, selected: (lang && (lang === 'auto' || options.some((o) => o.code === lang))) ? lang : 'auto' };
