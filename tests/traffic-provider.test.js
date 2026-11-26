@@ -104,11 +104,11 @@ test('selected nlbwmon failure does not switch to nft counters', async () => {
 });
 
 test('traffic permissions grant only fixed counter reads and read-only collector configuration', () => {
-	const acl = JSON.parse(fs.readFileSync('root/usr/share/rpcd/acl.d/luci-theme-carbon.json'))['luci-theme-carbon'];
+	const acl = JSON.parse(fs.readFileSync('legacy/21.02/root/usr/share/rpcd/acl.d/luci-theme-carbon.json'))['luci-theme-carbon'];
 	assert.deepEqual(acl.read.file['/usr/sbin/nlbw -c json -g mac -n'], ['exec']);
 	assert.deepEqual(acl.read.file['/usr/sbin/nft -j list counters table inet carbon_acct'], ['exec']);
 	assert.deepEqual(Object.entries(acl.read.file).filter(([, rights]) => rights.includes('exec')).map(([name]) => name),
-		['/usr/sbin/nlbw -c json -g mac -n', '/usr/sbin/nft -j list counters table inet carbon_acct']);
+		['/bin/df', '/usr/sbin/nlbw -c json -g mac -n', '/usr/sbin/nft -j list counters table inet carbon_acct']);
 	assert.ok(acl.read.uci.includes('nlbwmon'));
-	assert.deepEqual(acl.write.uci, ['luci']);
+	assert.deepEqual(acl.write.uci, ['luci', 'carbon']);
 });

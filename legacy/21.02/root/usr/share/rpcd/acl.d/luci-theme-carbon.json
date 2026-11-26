@@ -20,7 +20,9 @@
 				"/sys/class/hwmon/*/name": [ "read" ],
 				"/sys/class/hwmon/*/temp*_input": [ "read" ],
 				"/sys/class/hwmon/*/temp*_label": [ "read" ],
-				"/bin/df": [ "exec" ]
+				"/bin/df": [ "exec" ],
+				"/usr/sbin/nlbw -c json -g mac -n": [ "exec" ],
+				"/usr/sbin/nft -j list counters table inet carbon_acct": [ "exec" ]
 			},
 			"ubus": {
 				"file": [ "read", "list", "stat" ],
@@ -33,7 +35,7 @@
 				"luci": [ "getRealtimeStats", "getConntrackList" ],
 				"luci.carbon_update": [ "set_dashboard", "set_simple_menu" ]
 			},
-			"uci": [ "luci", "carbon" ]
+			"uci": [ "luci", "carbon", "nlbwmon" ]
 		},
 		"write": {
 			"file": {

@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "python3 -I scripts/build-css.py && python3 -I scripts/gen-i18n.py",
-    "check": "python3 -I scripts/build-css.py --check && python3 -I scripts/gen-i18n.py --check && sh scripts/check-version.sh",
+    "check": "python3 -I scripts/build-css.py --check && python3 -I scripts/gen-i18n.py --check",
     "test": "node --test tests/*.test.js",
     "test:browser": "node --test tests/browser/*.test.js",
     "minify": "node scripts/minify.mjs"

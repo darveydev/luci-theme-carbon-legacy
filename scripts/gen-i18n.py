@@ -22,9 +22,8 @@ OUT_DIR = ROOT / 'htdocs' / 'luci-static' / 'carbon' / 'i18n'
 SOURCES = [
     'htdocs/luci-static/carbon/carbon.js',
     'htdocs/luci-static/resources/menu-carbon.js',
-    'htdocs/luci-static/resources/view/system/carbon-update.js',
 ]
-MENU_JSON = ['root/usr/share/luci/menu.d/luci-theme-carbon.json']
+MENU_JSON = []
 # Same short names luci.mk uses for lmo files (LUCI_LC_ALIAS).
 ALIAS = {'zh_Hans': 'zh-cn', 'zh_Hant': 'zh-tw', 'pt_BR': 'pt-br', 'nb_NO': 'no', 'sr_Latn': 'sr'}
 CALL = re.compile(r"(?<![\w$.])(?:C\.)?(?:t|tr|N_)\(\s*'((?:[^'\\\n]|\\.)*)'")

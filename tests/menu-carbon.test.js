@@ -159,7 +159,7 @@ test('unavailable system info keeps the existing provider failure semantics', as
 });
 
 test('dashboard ACL grants read-only access to meminfo', () => {
-	const acl = JSON.parse(fs.readFileSync('root/usr/share/rpcd/acl.d/luci-theme-carbon.json', 'utf8'))['luci-theme-carbon'];
+	const acl = JSON.parse(fs.readFileSync('legacy/21.02/root/usr/share/rpcd/acl.d/luci-theme-carbon.json', 'utf8'))['luci-theme-carbon'];
 	assert.deepEqual(acl.read.file['/proc/meminfo'], ['read']);
 	assert.equal(acl.write.file?.['/proc/meminfo'], undefined);
 });
