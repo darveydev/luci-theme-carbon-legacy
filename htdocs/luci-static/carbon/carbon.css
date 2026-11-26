@@ -753,7 +753,8 @@ form.inline { display: inline; margin: 0; }
 	position: sticky;
 	z-index: 200;
 	top: 12px;
-	margin-top: 12px;
+	max-width: var(--cb-content-max);
+	margin: 12px auto 0;
 	display: flex;
 	align-items: center;
 	gap: 12px;
