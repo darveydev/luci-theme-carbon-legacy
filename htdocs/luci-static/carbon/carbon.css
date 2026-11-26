@@ -752,7 +752,8 @@ form.inline { display: inline; margin: 0; }
 .cb-toolbar {
 	position: sticky;
 	z-index: 200;
-	top: 0;
+	top: 12px;
+	margin-top: 12px;
 	display: flex;
 	align-items: center;
 	gap: 12px;
@@ -760,6 +761,7 @@ form.inline { display: inline; margin: 0; }
 	padding: 8px 28px 8px 16px;
 	background: var(--cb-bg);
 	border-bottom: .5px solid transparent;
+	border-radius: 22px;
 	transition: border-color .2s var(--cb-ease);
 }
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {

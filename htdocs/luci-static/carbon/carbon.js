@@ -1058,7 +1058,7 @@
 		const toolbar = document.querySelector('.cb-toolbar');
 		if (toolbar && !toolbar.querySelector('.cb-github')) {
 			toolbar.appendChild(h('a', {
-				class: 'cb-github', href: 'https://github.com/mrjoechen/luci-theme-carbon',
+				class: 'cb-github', href: 'https://github.com/darveydev/luci-theme-carbon-legacy',
 				target: '_blank', rel: 'noopener noreferrer',
 				title: t('GitHub (opens in a new tab)'), 'aria-label': t('GitHub (opens in a new tab)'),
 				html: icon('github')
