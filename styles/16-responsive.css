@@ -49,7 +49,7 @@ body:has(#maincontent .table) { --cb-content-max: var(--cb-content-wide); }
 	body.cb-nav-open .cb-scrim { opacity: 1; visibility: visible; }
 	.cb-main { margin-left: 0; }
 	.cb-burger { display: inline-block; }
-	.cb-toolbar { padding: 8px 16px; padding-left: max(16px, env(safe-area-inset-left)); }
+	.cb-toolbar { width: calc(100% - 32px); padding: 8px 16px; padding-left: max(16px, env(safe-area-inset-left)); }
 	.cb-content { padding: 10px 16px 24px; }
 	.cb-footer { padding: 8px 16px 24px; }
 }

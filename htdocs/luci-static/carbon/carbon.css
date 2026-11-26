@@ -753,8 +753,9 @@ form.inline { display: inline; margin: 0; }
 	position: sticky;
 	z-index: 200;
 	top: 12px;
-	/* match the content column's inner edges (1240px minus its 28px side padding) */
-	max-width: calc(var(--cb-content-max) - 56px);
+	/* mirror .cb-content's box exactly: min(available, content max) minus its
+	   28px side padding, so the glass edges line up with the page content */
+	width: calc(min(100%, var(--cb-content-max)) - 56px);
 	margin: 12px auto 0;
 	display: flex;
 	align-items: center;
@@ -3397,7 +3398,7 @@ body:has(#maincontent .table) { --cb-content-max: var(--cb-content-wide); }
 	body.cb-nav-open .cb-scrim { opacity: 1; visibility: visible; }
 	.cb-main { margin-left: 0; }
 	.cb-burger { display: inline-block; }
-	.cb-toolbar { padding: 8px 16px; padding-left: max(16px, env(safe-area-inset-left)); }
+	.cb-toolbar { width: calc(100% - 32px); padding: 8px 16px; padding-left: max(16px, env(safe-area-inset-left)); }
 	.cb-content { padding: 10px 16px 24px; }
 	.cb-footer { padding: 8px 16px 24px; }
 }
