@@ -74,3 +74,13 @@ textarea#syslog {
 [data-page="admin-status"] .cbi-section > h3,
 [data-page="admin"] .cbi-section > h3 { margin-top: 4px; }
 
+/* JS-rendered overview includes (e.g. DHCP / DHCPv6 leases) put bare h3+table
+   pairs inside a classless container div — normalise their vertical rhythm to
+   match the 22px section spacing used elsewhere */
+[data-page="admin-status-overview"] .cbi-section > div:not([class]) > h3,
+[data-page="admin-status"] .cbi-section > div:not([class]) > h3,
+[data-page="admin"] .cbi-section > div:not([class]) > h3 { margin: 22px 0 10px; }
+[data-page="admin-status-overview"] .cbi-section > div:not([class]) > h3:first-child,
+[data-page="admin-status"] .cbi-section > div:not([class]) > h3:first-child,
+[data-page="admin"] .cbi-section > div:not([class]) > h3:first-child { margin-top: 4px; }
+

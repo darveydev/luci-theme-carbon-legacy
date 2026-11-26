@@ -586,7 +586,8 @@
 	text-overflow: ellipsis;
 }
 .cb-title .cb-crumb { color: var(--cb-text-2); font-weight: 500; }
-.cb-title .cb-crumb-sep { width: 12px; height: 12px; color: var(--cb-text-3); flex: none; }
+.cb-title .cb-crumb-sep { display: inline-flex; align-items: center; justify-content: center; width: 12px; height: 12px; color: var(--cb-text-3); flex: none; }
+.cb-title .cb-crumb-sep > svg { display: block; width: 100%; height: 100%; }
 
 .cb-burger {
 	display: none;
