@@ -193,37 +193,32 @@ test('a poll started later by the status view is stopped again while collapsed',
 	assert.deepEqual(f.calls, ['stop', 'stop', 'start'], 'expanded details keep LuCI polling');
 });
 
-test('language list offers English plus installed and bundled catalogues with native names', async () => {
+test('language list offers English plus installed catalogues with native names', async () => {
 	const f = load({ uci: { luci: {
 		languages: { '.name': 'languages', '.type': 'internal', zh_cn: '简体中文 (Chinese Simplified)', zh_tw: '繁體中文 (Chinese Traditional)', de: 'Deutsch (German)', 'bad key': 'x' },
 		main: { lang: 'auto' }
 	} } });
 	const info = await f.subject.language.load();
 	assert.deepEqual(JSON.parse(JSON.stringify(info.options.map((o) => [o.code, o.label, o.short]))), [
-		['en', 'English', 'EN'],
-		['de', 'Deutsch', 'DE'], ['es', 'Español', 'ES'], ['fr', 'Français', 'FR'], ['it', 'Italiano', 'IT'],
-		['ja', '日本語', 'JA'], ['ko', '한국어', 'KO'], ['pt-br', 'Português (Brasil)', 'PT'], ['ru', 'Русский', 'RU'],
-		['tr', 'Türkçe', 'TR'], ['vi', 'Tiếng Việt', 'VI'], ['zh_cn', '简体中文', '简'], ['zh_tw', '繁體中文', '繁']
+		['en', 'English', 'EN'], ['de', 'Deutsch', 'DE'], ['zh_cn', '简体中文', '简'], ['zh_tw', '繁體中文', '繁']
 	]);
 	assert.equal(info.selected, 'auto');
 });
 
-test('Chinese catalogues are labelled 简/繁; unknown saved languages fall back to auto', async () => {
-	const f = load({ uci: { luci: { languages: { zh_cn: '中文 (Chinese)' }, main: { lang: 'xx' } } } });
+test('a single Chinese catalogue is labelled 中; unknown saved languages fall back to auto', async () => {
+	const f = load({ uci: { luci: { languages: { zh_cn: '中文 (Chinese)' }, main: { lang: 'fr' } } } });
 	const info = await f.subject.language.load();
-	assert.deepEqual(JSON.parse(JSON.stringify(info.options.filter((o) => /^zh/i.test(o.code)).map((o) => o.short))), ['简', '繁']);
+	assert.equal(info.options[1].short, '中');
 	assert.equal(info.selected, 'auto');
 });
 
-test('switching language writes luci.main.lang for installed and bundled languages', async () => {
+test('switching language writes luci.main.lang only for installed languages', async () => {
 	const f = load({ uci: { luci: { languages: { zh_cn: '简体中文 (Chinese Simplified)' }, main: { lang: 'en' } } } });
 	await f.subject.language.set('zh_cn');
 	assert.deepEqual(JSON.parse(JSON.stringify(f.writes)), [['set', 'luci', 'main', { lang: 'zh_cn' }], ['commit', 'luci']]);
-	await f.subject.language.set('ru');
-	assert.deepEqual(JSON.parse(JSON.stringify(f.writes.slice(2))), [['set', 'luci', 'main', { lang: 'ru' }], ['commit', 'luci']]);
-	await assert.rejects(() => f.subject.language.set('pl'), /not installed/);
+	await assert.rejects(() => f.subject.language.set('ru'), /not installed/);
 	await f.subject.language.set('auto');
-	assert.equal(f.writes.length, 6);
+	assert.equal(f.writes.length, 4);
 });
 
 test('dashboard mount passes SSR UCI layout and persists save/reset via luci.carbon_update', async () => {

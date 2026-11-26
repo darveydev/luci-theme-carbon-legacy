@@ -967,10 +967,10 @@
 				value: info.selected, label: t('Language'), className: 'cb-lang-list', onChange: go
 			});
 			reset = () => list.set(info.selected);
-		/* the trigger lives in the toolbar, so the list opens below it */
-		mini.setAttribute('aria-haspopup', 'listbox');
-		mini.addEventListener('click', () => list.toggle({ anchor: mini }));
-		wrap.classList.add('cb-lang-many');
+			/* on the rail the list opens beside it, like the sub-menus */
+			mini.setAttribute('aria-haspopup', 'listbox');
+			mini.addEventListener('click', () => list.toggle({ anchor: mini, beside: railActive() }));
+			wrap.classList.add('cb-lang-many');
 			wrap.appendChild(list.el);
 		}
 		mini.setAttribute('aria-label', mini.title);
@@ -1041,9 +1041,7 @@
 		window.addEventListener('scroll', onScroll, { passive: true });
 		onScroll();
 
-		/* theme switch — toolbar, top-right. Wide viewports get the segmented
-		   control; when the toolbar runs out of room it collapses to a single
-		   icon button that opens the same three choices in a list. */
+		/* theme switch — toolbar, top-right */
 		const APPEARANCES = ['auto', 'light', 'dark'];
 		const APPEARANCE_ICON = { auto: 'auto', light: 'sun', dark: 'moon' };
 		const APPEARANCE_LABEL = { auto: N_('Auto'), light: N_('Light'), dark: N_('Dark') };
@@ -1052,29 +1050,9 @@
 		if (themeHost) {
 			themeHost.innerHTML = '';
 			themeHost.title = t('Appearance');
-			const setAppearance = (v) => {
-				C.appearance.set(v);
-				appearanceMini.innerHTML = icon(APPEARANCE_ICON[v]);
-			};
-			const seg = segmented(
+			themeHost.appendChild(segmented(
 				APPEARANCES.map((v) => ({ value: v, title: appearanceLabel(v), html: icon(APPEARANCE_ICON[v]) })),
-				C.appearance.get(), setAppearance, t('Appearance'));
-			themeHost.appendChild(seg);
-			const appearanceList = listbox({
-				options: APPEARANCES.map((v) => ({ value: v, label: appearanceLabel(v) })),
-				value: C.appearance.get(), label: t('Appearance'),
-				onChange: (v) => { setAppearance(v); seg._selectExact(v); }
-			});
-			const appearanceMini = h('button', {
-				type: 'button', class: 'cb-mini cb-appearance-mini',
-				html: icon(APPEARANCE_ICON[C.appearance.get()])
-			});
-			appearanceMini.title = t('Appearance');
-			appearanceMini.setAttribute('aria-label', t('Appearance'));
-			appearanceMini.setAttribute('aria-haspopup', 'listbox');
-			appearanceMini.addEventListener('click', () => appearanceList.toggle({ anchor: appearanceMini }));
-			themeHost.appendChild(appearanceList.el);
-			themeHost.appendChild(appearanceMini);
+				C.appearance.get(), (v) => C.appearance.set(v), t('Appearance')));
 		}
 
 		const toolbar = document.querySelector('.cb-toolbar');
@@ -1085,6 +1063,14 @@
 				title: t('GitHub (opens in a new tab)'), 'aria-label': t('GitHub (opens in a new tab)'),
 				html: icon('github')
 			}));
+		}
+
+		const collapse = document.getElementById('cb-collapse');
+		if (collapse) {
+			collapse.innerHTML = icon('chevleft');
+			collapse.title = t('Collapse sidebar') + ' (Ctrl+\\)';
+			collapse.setAttribute('aria-label', C.sidebar.collapsed() ? t('Expand sidebar') : t('Collapse sidebar'));
+			collapse.addEventListener('click', () => C.sidebar.toggle());
 		}
 
 		/* mode: segmented when expanded, single icon button on the rail */
@@ -1113,44 +1099,33 @@
 			modeHost.appendChild(mini);
 		}
 
-		/* sidebar footer: logout first, then the collapse handle.
-		   opts.logoutUrl = '/cgi-bin/luci/admin/status/logout' */
+		/* language switch — sidebar footer, bottom-left.
+		   opts.language = {
+		     current: '<html lang>',
+		     load() → Promise<{ options: [{ code, label, short }], selected: code|'auto' }>,
+		     set(code) → Promise
+		   }
+		   Two catalogues → segmented control; more → a native select. */
 		const foot = document.getElementById('cb-sidebar-foot');
 		if (foot) {
 			foot.innerHTML = '';
+			if (opts.language && typeof opts.language.load === 'function') {
+				const L10N = opts.language;
+				const wrap = h('div', { class: 'cb-lang', title: t('Language') });
+				foot.appendChild(wrap);
+				Promise.resolve().then(() => L10N.load()).then((info) => {
+					if (!info || !info.options || info.options.length < 2) { wrap.remove(); return; }
+					renderLanguage(wrap, L10N, info);
+				}).catch((err) => {
+					wrap.remove();
+					if (window.console) console.warn('[carbon] languages unavailable:', err);
+				});
+			}
 			if (opts.logoutUrl) {
 				const out = h('a', { class: 'cb-logout', href: opts.logoutUrl, html: icon('logout') + '<span>' + esc(t('Log out')) + '</span>' });
 				bindFlyout(out, t('Log out'), null);
 				foot.appendChild(out);
 			}
-			const collapse = h('button', { type: 'button', class: 'cb-collapse', id: 'cb-collapse' });
-			collapse.innerHTML = icon('chevleft');
-			collapse.title = t('Collapse sidebar') + ' (Ctrl+\\)';
-			collapse.setAttribute('aria-controls', 'cb-sidebar');
-			collapse.setAttribute('aria-label', C.sidebar.collapsed() ? t('Expand sidebar') : t('Collapse sidebar'));
-			collapse.addEventListener('click', () => C.sidebar.toggle());
-			foot.appendChild(collapse);
-		}
-
-		/* language switch — toolbar, between the appearance switch and the
-		   indicators.  opts.language = {
-		     current: '<html lang>',
-		     load() → Promise<{ options: [{ code, label, short }], selected: code|'auto' }>,
-		     set(code) → Promise
-		   }
-		   Two catalogues → segmented control; more → a mini button with a list. */
-		const langHost = document.getElementById('cb-lang');
-		if (langHost && opts.language && typeof opts.language.load === 'function') {
-			const L10N = opts.language;
-			const wrap = h('div', { class: 'cb-lang-wrap', title: t('Language') });
-			langHost.appendChild(wrap);
-			Promise.resolve().then(() => L10N.load()).then((info) => {
-				if (!info || !info.options || info.options.length < 2) { langHost.innerHTML = ''; return; }
-				renderLanguage(wrap, L10N, info);
-			}).catch((err) => {
-				langHost.innerHTML = '';
-				if (window.console) console.warn('[carbon] languages unavailable:', err);
-			});
 		}
 
 		window.addEventListener('resize', () => hideFlyout(true));

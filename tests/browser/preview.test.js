@@ -75,7 +75,7 @@ async function open(url, { width = 1280, height = 900, appearance = 'light', sto
 const dashboardReady = (page) => page.waitForFunction(() =>
 	document.querySelectorAll('.cb-clients .cb-list li').length >= 8 && document.querySelector('.cb-tag-wifi') &&
 	document.querySelectorAll('.cb-kv li').length >= 2 && document.querySelector('.cb-load-badge') &&
-	document.querySelector('#cb-lang .cb-lb'));
+	document.querySelector('.cb-lang .cb-lb'));
 
 test('side-router discovery works without DHCP and distinguishes neighbours, gateways and lease records', async () => {
 	const mock = fs.readFileSync(path.join(ROOT, 'preview', 'mock.js'), 'utf8');
@@ -909,7 +909,7 @@ test('bundled catalogues translate the shell and fit the sidebar', async () => {
 			common: document.querySelector('.cb-nav-sect').textContent,
 			expected: window.Carbon.I18N.Common,
 			/* segmented labels must not overflow their buttons */
-			clipped: [...document.querySelectorAll('.cb-mode .cb-seg-btn, #cb-lang .cb-seg-btn')].filter((b) => b.scrollWidth > b.clientWidth + 1).map((b) => b.textContent),
+			clipped: [...document.querySelectorAll('.cb-mode .cb-seg-btn, .cb-lang .cb-seg-btn')].filter((b) => b.scrollWidth > b.clientWidth + 1).map((b) => b.textContent),
 			navClipped: [...document.querySelectorAll('.cb-nav-label')].filter((l) => l.scrollWidth > l.clientWidth + 1 && getComputedStyle(l).textOverflow !== 'ellipsis').map((l) => l.textContent)
 		}));
 		assert.ok(r.loaded > 150, `${code}: catalogue loaded`);
@@ -1719,19 +1719,19 @@ test('settings page: the mirror explanation lives in a ? toggletip', async () =>
 
 test('language switch is a Carbon listbox with every bundled language', async () => {
 	const { page, context } = await open('/src/preview/index.html?lang=en');
-	await page.waitForSelector('#cb-lang .cb-lb');
-	assert.equal(await page.$('#cb-lang select'), null, 'no native select');
-	assert.equal(await page.textContent('#cb-lang .cb-lb'), 'English');
-	await page.click('#cb-lang .cb-lb');
+	await page.waitForSelector('.cb-lang .cb-lb');
+	assert.equal(await page.$('.cb-lang select'), null, 'no native select');
+	assert.equal(await page.textContent('.cb-lang .cb-lb'), 'English');
+	await page.click('.cb-lang .cb-lb');
 	const list = await page.evaluate(() => {
 		const ul = document.querySelector('.cb-lb-list');
-		const r = ul.getBoundingClientRect(), t = document.querySelector('#cb-lang .cb-lb').getBoundingClientRect();
+		const r = ul.getBoundingClientRect(), t = document.querySelector('.cb-lang .cb-lb').getBoundingClientRect();
 		return {
 			labels: [...ul.children].map((li) => li.textContent),
 			selected: [...ul.querySelectorAll('[aria-selected="true"]')].map((li) => li.textContent),
-			expanded: document.querySelector('#cb-lang .cb-lb').getAttribute('aria-expanded'),
+			expanded: document.querySelector('.cb-lang .cb-lb').getAttribute('aria-expanded'),
 			focus: document.activeElement === ul,
-			opensDown: r.top >= t.bottom, inView: r.top >= 0 && r.bottom <= innerHeight,
+			opensUp: r.bottom <= t.top, inView: r.top >= 0 && r.bottom <= innerHeight,
 			bg: getComputedStyle(ul).backgroundColor
 		};
 	});
@@ -1740,18 +1740,18 @@ test('language switch is a Carbon listbox with every bundled language', async ()
 	assert.deepEqual(list.selected, ['English']);
 	assert.equal(list.expanded, 'true');
 	assert.ok(list.focus, 'the list takes focus');
-	assert.ok(list.opensDown && list.inView, 'opens below the toolbar trigger, inside the window');
+	assert.ok(list.opensUp && list.inView, 'opens above the footer trigger, inside the window');
 	await Promise.all([page.waitForURL(/lang=zh-Hant/), page.click('.cb-lb-list li:has-text("繁體中文")')]);
 	await page.waitForSelector('.cb-dash');
 	assert.equal(await page.textContent('.cb-card.cb-traffic h3'), await page.evaluate(() => window.Carbon.I18N['Live Traffic']));
-	assert.equal(await page.textContent('#cb-lang .cb-lb'), '繁體中文');
+	assert.equal(await page.textContent('.cb-lang .cb-lb'), '繁體中文');
 	await context.close();
 });
 
 test('language listbox: keyboard, type-ahead and dismissal', async () => {
 	const { page, context } = await open('/src/preview/index.html?lang=en');
-	await page.waitForSelector('#cb-lang .cb-lb');
-	await page.focus('#cb-lang .cb-lb');
+	await page.waitForSelector('.cb-lang .cb-lb');
+	await page.focus('.cb-lang .cb-lb');
 	await page.keyboard.press('ArrowDown');
 	const activeText = () => page.evaluate(() => document.querySelector('.cb-lb-list li.active').textContent);
 	assert.equal(await activeText(), 'English', 'opens on the current language');
@@ -1768,32 +1768,31 @@ test('language listbox: keyboard, type-ahead and dismissal', async () => {
 	assert.equal(await page.$('.cb-lb-list'), null, 'Escape closes');
 	assert.equal(await page.evaluate(() => document.activeElement.classList.contains('cb-lb')), true, 'focus returns to the trigger');
 	assert.equal(new URL(page.url()).searchParams.get('lang'), 'en', 'nothing chosen yet');
-	await page.click('#cb-lang .cb-lb');
+	await page.click('.cb-lang .cb-lb');
 	await page.mouse.click(700, 400);
 	assert.equal(await page.$('.cb-lb-list'), null, 'an outside click closes');
-	await page.focus('#cb-lang .cb-lb');
+	await page.focus('.cb-lang .cb-lb');
 	await page.keyboard.press('Enter');
 	await page.keyboard.press('ArrowDown');
 	await Promise.all([page.waitForURL(/lang=de/), page.keyboard.press('Enter')]);
 	await context.close();
 });
 
-test('language listbox opens below the toolbar mini and returns focus to it', async () => {
+test('language listbox opens beside the collapsed rail and returns focus to it', async () => {
 	const { page, context } = await open('/src/preview/index.html?lang=en', { storage: { 'carbon.collapsed': '1' } });
 	await page.waitForSelector('.cb-lang-mini');
 	await page.click('.cb-lang-mini');
 	const r = await page.evaluate(() => {
 		const ul = document.querySelector('.cb-lb-list').getBoundingClientRect();
-		const t = document.querySelector('.cb-lang-mini').getBoundingClientRect();
-		return { top: ul.top, triggerBottom: t.bottom, bottom: ul.bottom, h: innerHeight };
+		return { left: ul.left, rail: document.getElementById('cb-sidebar').getBoundingClientRect().right, bottom: ul.bottom, h: innerHeight };
 	});
-	assert.ok(r.top >= r.triggerBottom, 'below the toolbar trigger');
+	assert.ok(r.left >= r.rail, 'beside the rail');
 	assert.ok(r.bottom <= r.h, 'inside the window');
 	await page.keyboard.press('Escape');
 	assert.equal(await page.evaluate(() => document.activeElement.classList.contains('cb-lang-mini')), true);
 	await page.click('.cb-lang-mini');
 	await page.click('.cb-lang-mini');
-	assert.equal(await page.$('.cb-lb-list'), null, 'the toolbar button toggles');
+	assert.equal(await page.$('.cb-lb-list'), null, 'the rail button toggles');
 	await context.close();
 });
 
