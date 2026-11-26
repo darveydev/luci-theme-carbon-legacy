@@ -753,7 +753,8 @@ form.inline { display: inline; margin: 0; }
 	position: sticky;
 	z-index: 200;
 	top: 12px;
-	max-width: var(--cb-content-max);
+	/* match the content column's inner edges (1240px minus its 28px side padding) */
+	max-width: calc(var(--cb-content-max) - 56px);
 	margin: 12px auto 0;
 	display: flex;
 	align-items: center;
