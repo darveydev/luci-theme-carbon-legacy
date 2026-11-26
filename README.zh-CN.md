@@ -1,0 +1,197 @@
+<div align="center">
+
+<img src="htdocs/luci-static/carbon/logo.svg" width="72" height="72" alt="Carbon">
+
+# luci-theme-carbon
+
+简洁的毛玻璃风格 OpenWrt LuCI 主题，为每一个人设计。
+
+[English](README.md) · **简体中文**
+
+[![Build](https://github.com/mrjoechen/luci-theme-carbon/actions/workflows/build.yml/badge.svg)](https://github.com/mrjoechen/luci-theme-carbon/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/mrjoechen/luci-theme-carbon)](https://github.com/mrjoechen/luci-theme-carbon/releases/latest)
+[![License](https://img.shields.io/github/license/mrjoechen/luci-theme-carbon)](LICENSE)
+[![Download](https://img.shields.io/github/downloads/mrjoechen/luci-theme-carbon/total?style=flat)](https://github.com/mrjoechen/luci-theme-carbon/releases/latest)
+[![Star](https://img.shields.io/github/stars/mrjoechen/luci-theme-carbon)](https://github.com/mrjoechen/ShowcaseApp/stargazers)
+
+**[在线演示](https://mrjoechen.github.io/luci-theme-carbon/) · [English demo](https://mrjoechen.github.io/luci-theme-carbon/?lang=en)**
+
+<p align="center"><img src=".github/screenshots/intro.png" alt="Carbon 桌面端与移动端预览" width="100%"></p>
+
+https://github.com/user-attachments/assets/b78ccf2b-679e-459b-88ea-b4f82da6e03f
+
+</div>
+
+## 界面预览
+
+<p align="center"><img src=".github/screenshots/overview-light.jpg" alt="浅色" width="100%"></p>
+
+<p align="center"><img src=".github/screenshots/overview-dark.jpg" alt="深色" width="100%"></p>
+
+## 功能
+
+- **自定义仪表盘**：集成多接口实时流量、资源占用、温度、Wi‑Fi 及网络状态面板，支持预设切换、显隐与排序（UCI 保存），并保留原版状态入口。
+- **设备上下行网速**：默认使用 `nlbwmon` 统计，也可选配 `nftables` 命名计数器实现 5 秒采样（详见[配置说明](docs/device-traffic.md)）。
+- **已发现设备**：整合 DHCP 租约、Wi‑Fi 终端（频段与信号）及 ARP 邻居并按 MAC 去重，支持无本机 DHCP 场景与 35 个设备品牌识别。
+- **简洁 / 专业双模式**：简洁模式默认保留常用入口，并支持自由添加、移除和排序任意已安装的 LuCI 页面与插件（UCI 保存）；专业模式展示完整 LuCI 菜单与页面图标。
+- **毛玻璃侧栏**：可收起为图标窄栏（<kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>\\</kbd>），悬停或点击即可展开子菜单。
+- **主题与多语言**：支持浅色 / 深色 / 跟随系统切换；内置 13 种语言，左下角可直接切换已安装的 LuCI 语言。
+- **键盘与触屏友好**：支持方向键操作、抽屉焦点管理，窄栏子菜单支持点按与键盘展开。
+- **适配手机**：侧栏变为抽屉，表格自动变成卡片。
+- **自定义 Logo**：支持上传常见图片或安全 SVG，统一替换各页面与标签页图标，升级后保留配置。
+- **网页在线升级**：在主题设置中一键检查并安装稳定版，支持 HTTPS 镜像，并校验签名与 SHA-256。
+- **通用兼容**：所有现有 LuCI 页面和插件照常使用；架构无关，所有路由器通用一个安装包。
+
+## 安装与使用
+
+### 兼容性
+
+**GL-MT6000 原厂固件（OpenWrt 21.02 / Lua LuCI）请使用下方 Legacy 移植包**，不要安装本仓库常规 Release 的新版 IPK 或安装脚本。Legacy 源码、构建和回退步骤见[GL-MT6000 Legacy 指南](docs/gl-mt6000-legacy-21.02.md)。该移植目标使用匹配的 GL.iNet SDK；目前尚未覆盖所有原厂固件版本的设备端验证。
+
+| 固件 | 包管理器 | 安装包 |
+|---|---|---|
+| OpenWrt / ImmortalWrt 23.05、24.10 | opkg | `.ipk` 或安装脚本 |
+| OpenWrt / ImmortalWrt 25.x、snapshot | apk | `.apk` 或安装脚本 |
+
+需要 ucode 版 LuCI（23.05 及以后）。同一个 `.ipk` 包和在线升级器均适用于 OpenWrt 23.05（含无 `setsid` 的官方默认 BusyBox 与 23.05 SDK 构建包）及 24.10。
+
+所有文件都在 [Releases](https://github.com/mrjoechen/luci-theme-carbon/releases/latest) 页面。
+
+### 方式一：安装脚本（所有固件通用）
+
+在路由器上执行（SSH 登录后）：
+
+```bash
+curl -fsSL -o /tmp/carbon-install.sh https://github.com/mrjoechen/luci-theme-carbon/releases/latest/download/carbon-install.sh && sh /tmp/carbon-install.sh
+```
+
+或者使用 `wget`。
+
+```bash
+wget -O /tmp/carbon-install.sh https://github.com/mrjoechen/luci-theme-carbon/releases/latest/download/carbon-install.sh && sh /tmp/carbon-install.sh
+```
+
+脚本内置当前 Release 的已签名 `.apk`、`.ipk` 和 Carbon 公钥，通过系统包管理器安装，因此在线升级可用，**无需手动导入公钥**。APK 签名用内置公钥在独立目录中校验，不修改 `/etc/apk/keys`。缺少的依赖（`curl`、`ca-bundle`、`flock`）从固件自带软件源安装。可选参数：
+
+| 命令 | 作用 |
+|---|---|
+| `sh carbon-install.sh --trust-key` | 同时把 Carbon 公钥加入 `/etc/apk/keys`，之后可在 LuCI 直接上传 Carbon 的 APK |
+| `sh carbon-install.sh --files` | 只复制文件（不登记到包管理器，无法在线升级） |
+
+再次运行脚本即可原地升级，也会把旧版脚本安装的主题转为包管理器登记的安装。无法通过包管理器安装时（例如离线且缺少依赖），会自动改为复制文件并给出提示。
+
+如果路由器不能上网，先在电脑上下载 `carbon-install.sh` 再传过去（`-O` 不能省，OpenWrt 的 SSH 服务没有 SFTP）：
+
+```bash
+scp -O carbon-install.sh root@192.168.1.1:/tmp/
+```
+
+```bash
+ssh root@192.168.1.1 "sh /tmp/carbon-install.sh"
+```
+
+### 方式二：opkg（`.ipk`，23.05 / 24.10）
+
+在「系统 → 软件包 → 上传软件包」上传 `luci-theme-carbon_*_all.ipk`，或执行：
+
+```bash
+opkg install /tmp/luci-theme-carbon_*_all.ipk
+```
+
+### 方式三：apk（`.apk`，25.x / snapshot）
+
+**从 v1.0.1 开始，Release 中的 APK 已签名。** 每台设备只需导入一次 `carbon-apk.pem`，后续直接通过 LuCI 上传安装或升级：
+
+1. 从 [Releases](https://github.com/mrjoechen/luci-theme-carbon/releases/latest) 下载公钥和 APK。
+2. 切换到专业模式，在 **系统 → 管理权 → 软件源公钥（Repo Public Keys）** 中粘贴完整公钥并添加（需固件提供此页面）。
+3. 在 **系统 → 软件包 → 上传软件包** 中上传 APK 并安装。
+
+旧版 LuCI 没有公钥管理页时，只需一次 SSH 导入。公钥指纹、导入命令、刷机保留配置及排错见 [APK 配置说明](docs/apk-install.md)。旧 v1.0.0 APK 未签名，请重新下载新版。`wget` / `packages.adb` 报错属于独立的软件源或网络问题，要稳定通过网页安装仍需修复软件源。
+
+### 安装之后
+
+Carbon 会自动设为默认主题。刷新页面，然后**退出并重新登录一次**，仪表盘才能读取 CPU、连接数等数据。随时可以在「系统 → 系统 → 语言和界面」切换回其他主题。
+
+### 使用
+
+| 功能 | 位置 |
+|---|---|
+| 简洁 / 专业菜单 | 侧栏顶部的分段按钮（在简洁模式点击「自定义菜单」或「系统 → Carbon 主题设置 → 简洁菜单」可自由增删和排序常用页面，保存在路由器 UCI） |
+| 收起侧栏 | 侧栏边缘的圆形按钮，或 <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>\\</kbd> |
+| 浅色 / 深色 / 自动 | 工具栏右上角 |
+| 语言 | 侧栏左下角（修改的是 LuCI 的界面语言，等同「系统 → 语言」；安装超过两种语言时显示下拉框） |
+| 实时流量统计接口 | 每张「实时流量」卡片右上角的选择框：「自动」跟随 WAN；也可选任意接口或网络设备（如同时承载 IPTV 的光口 `pon0`），可在「自定义」中最多添加 4 张 |
+| 自定义仪表盘 | 仪表盘下方「自定义」按钮（也可在「系统 → Carbon 主题 → 仪表盘布局」恢复默认），保存在路由器 UCI（`/etc/config/carbon`） |
+| 检查更新与一键升级 | 系统 → Carbon 主题（简洁、专业模式均可见） |
+| 自定义 Logo | 系统 → Carbon 主题 → Logo（「恢复默认」可撤销） |
+| LuCI 原版状态页 | 仪表盘下方「显示详细状态」 |
+
+### 网页在线升级（v1.1.0 起）
+
+首次通过系统包管理器安装 v1.1.0 或更新版本，然后打开 **系统 → Carbon 主题**（v1.1.0 中名为「Carbon 更新」），点击「检查更新」，再点击「一键升级」并确认。页面显示更新说明、后台进度和安装日志；刷新页面后可继续查看进度。主题偏好与路由器配置会保留，不允许同版本重复安装、降级或使用过期的更新信息。
+
+APK 在线更新先使用包内固定的 Carbon 公钥验证，再由 APK 包管理器验签安装；使用已安装依赖，不读取固件软件源索引。此过程不修改 `/etc/apk/keys`，LuCI 标准「上传软件包」仍需前面的一次性公钥导入。IPK 更新通过 HTTPS 下载并核对发布附件的 SHA-256 与大小。检查与下载默认优先访问 GitHub，当 GitHub API 受限、失败或超时时自动回退到项目 GitHub Pages 托管的清单与安装包（需要系统时间正确）。详见 [在线升级说明](docs/online-update.md)。
+
+GitHub 下载缓慢或无法访问时，可在同一页面填写 HTTPS **下载镜像**前缀。镜像只用于下载安装包，版本、大小和 SHA-256 仍来自 GitHub（或官方 GitHub Pages 回退清单）；镜像失败时依次尝试 GitHub Releases 和官方 GitHub Pages。
+
+依赖 `curl`、`ca-bundle`、`flock`，使用原生包安装时自动处理（OpenWrt 23.05 不要求 `setsid`）。通过 OpenWrt 23.05 SDK 构建、版本号不含 `-r` 前缀的包（如 `1.1.8-1`）也能被正常识别并在线升级到正式 `-rN` 版本。使用 `--files` 或 v1.1.3 之前的安装脚本安装的主题没有登记到 apk/opkg，重新运行一次当前的 `carbon-install.sh` 即可启用在线升级。
+
+### 卸载
+
+```bash
+sh /tmp/carbon-install.sh uninstall
+```
+
+或使用 `opkg remove luci-theme-carbon` / `apk del luci-theme-carbon`。卸载后会自动切回原来的主题。
+
+## 自行构建
+
+**不需要 SDK**（生成安装脚本和 `.ipk`）：
+
+```bash
+sh scripts/build-installer.sh
+```
+
+```bash
+sh scripts/build-ipk.sh
+```
+
+**使用 OpenWrt SDK**：把本目录放到 SDK 的 `package/` 下，执行 `make package/luci-theme-carbon/compile`（支持 23.05 / 24.10 `opkg` 与 25.x `apk` SDK；安装脚本与在线升级器均兼容 23.05 的无 `-r` 修订号）。
+
+**APK 签名**：SDK 原始 APK 未签名；本地签名方法、验证步骤和发布所需的 `APK_SIGNING_KEY` Actions Secret 见 [签名构建说明](docs/apk-signing.md)。
+
+**品牌数据**（`brands.js`）可用 `python3 -I scripts/gen-brands.py` 重新生成。
+
+### 开发
+
+| 源文件 | 生成文件 | 命令 |
+|---|---|---|
+| `styles/NN-*.css`（每个章节一个文件） | `htdocs/luci-static/carbon/carbon.css` | `python3 -I scripts/build-css.py` |
+| `po/<语言>/carbon.po`（gettext） | `po/templates/carbon.pot`、`htdocs/luci-static/carbon/i18n/<语言>.js` | `python3 -I scripts/gen-i18n.py` |
+| `Makefile` 的 `PKG_VERSION` / `PKG_RELEASE` | `root/usr/share/carbon/version`（保持一致） | `sh scripts/check-version.sh` |
+
+生成文件随仓库提交，各种安装方式都无需构建步骤；文件过期时 CI（`--check`）会失败。version 文件是唯一的版本来源：主题模板把它加到资源链接上，`carbon.js` 从链接中读取。
+
+新增语言：复制模板为 `po/<语言>/carbon.po`，翻译后运行 `gen-i18n.py`。使用 SDK 构建时还会生成 `luci-i18n-carbon-<语言>` 语言包。
+
+发布说明：编写 `docs/releases/vX.Y.Z.md`（参照上一版的格式），文件中分为 `## English` 和 `## 简体中文` 两节。发布任务（`scripts/release-notes.sh`）会把 `docs/releases/install.md` 中对应语言的安装说明接在各自一节后面，每种语言从头到尾连续阅读。
+
+发布包中的 CSS/JS 会被压缩（`node scripts/minify.mjs`，由 CI 在临时检出目录中执行）。测试：
+
+```bash
+npm ci && npm test
+```
+
+```bash
+npx playwright install chromium && npm run test:browser
+```
+
+基于 Docker 的更新器和模板测试见 [tests/README.md](tests/README.md)。
+
+## 声明
+
+- 品牌图标：[Simple Icons](https://simpleicons.org)（CC0 1.0），所有商标归各自所有者。
+- MAC 厂商前缀：IEEE Registration Authority MA-L 注册表。
+- 组件行为参照官方 `luci-theme-bootstrap`。
+
+本项目采用 [Apache License 2.0](LICENSE) 许可。

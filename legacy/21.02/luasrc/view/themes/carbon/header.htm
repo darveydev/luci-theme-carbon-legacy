@@ -1,0 +1,101 @@
+<%# Carbon Legacy theme shell for Lua based LuCI (OpenWrt 21.02) %>
+<%
+local http = require "luci.http"
+local util = require "luci.util"
+local dispatcher = require "luci.dispatcher"
+local fs = require "nixio.fs"
+local board = util.ubus("system", "board") or {}
+local uci = require "luci.model.uci".cursor()
+local hostname = board.hostname or "OpenWrt"
+local model = board.model or ""
+local media = media or "/luci-static/carbon"
+-- The template global "node" is luci.dispatcher.node() (a function), not the
+-- dispatched node object; take it from dispatcher.context.dispatched instead.
+local node = dispatcher.context and dispatcher.context.dispatched
+local page_title = (type(node) == "table" and node.title) and translate(node.title) or ""
+-- pcdata/striptags are injected into the template env by dispatcher
+-- (tpl.context.viewns), not members of luci.http. Keep a fallback.
+local function esc(s)
+	local f = (type(pcdata) == "function") and pcdata or util.pcdata
+	return f(tostring(s or ""))
+end
+local is_login = (type(duser) == "string" or type(duser) == "table")
+local logo = media .. "/logo.svg"
+local ok, st = pcall(fs.stat, "/www" .. media .. "/custom/logo.svg")
+if ok and st and st.type == "reg" then logo = media .. "/custom/logo.svg?v=" .. tostring(st.mtime or 0) end
+local lang = (i18n and i18n.context and i18n.context.lang)
+	or (luci and luci.i18n and luci.i18n.context and luci.i18n.context.lang)
+	or uci:get("luci", "main", "lang") or "en"
+local version = "dev"
+local vf = io.open("/usr/share/carbon/version", "r")
+if vf then version = vf:read("*l") or version; vf:close() end
+if not version:match("^[%w%._%-]+$") then version = "dev" end
+local traffic = "nlbwmon"
+if uci:get("carbon", "traffic", "source") == "nftables" then traffic = "nftables" end
+-- The dashboard layout and simple-menu customisation are saved by rpcd
+-- (luci.carbon_update set_dashboard / set_simple_menu) into /etc/config/carbon.
+-- Inject them as data attributes on .cb-app exactly like the modern ucode
+-- header.ut does, so saved layouts survive page reloads. Each value is
+-- validated with the same charset and length rules as the rpcd backend;
+-- anything that fails validation is simply omitted (frontend falls back
+-- to its defaults instead of rendering untrusted content).
+local function attr_value(values, key, maxlen, pattern)
+	if type(values) ~= "table" then return nil end
+	local v = values[key]
+	if type(v) == "string" and #v > 0 and #v <= maxlen and v:match(pattern) then return v end
+	return nil
+end
+local dashboard_attr, simple_menu_attr = "", ""
+if not is_login then
+	local dash = uci:get_all("carbon", "dashboard")
+	local parts = {}
+	for _, k in ipairs({ "hero", "sections", "monitor", "tiles", "details" }) do
+		local v = attr_value(dash, k, 256, "^[A-Za-z0-9%.:%@_ %-]+$")
+		if v then parts[#parts + 1] = k .. "=" .. v end
+	end
+	dashboard_attr = table.concat(parts, ";")
+	local menu = uci:get_all("carbon", "simple_menu")
+	parts = {}
+	for _, k in ipairs({ "common", "system" }) do
+		local v = attr_value(menu, k, 1024, "^[A-Za-z0-9%./_ %-]+$")
+		if v then parts[#parts + 1] = k .. "=" .. v end
+	end
+	simple_menu_attr = table.concat(parts, ";")
+end
+local locale = lang:lower():gsub("_", "-")
+if locale == "zh-hans" or locale == "zh-sg" then locale = "zh-cn" end
+if locale == "zh-hant" or locale == "zh-hk" or locale == "zh-mo" then locale = "zh-tw" end
+if not locale:match("^[a-z][a-z]%-?[a-z0-9]*$") then locale = "en" end
+local langfile = "/www" .. media .. "/i18n/" .. locale .. ".js"
+if not fs.access(langfile) then locale = locale:match("^([a-z]+)") or "en" end
+%>
+<!DOCTYPE html>
+<html lang="<%=esc(lang)%>">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<meta name="darkreader-lock">
+	<title><%=esc(hostname)%><% if page_title ~= "" then %> · <%=esc(page_title)%><% end %></title>
+	<link rel="stylesheet" href="<%=media%>/carbon.css?v=<%=version%>">
+	<link rel="icon" href="<%=logo%>">
+	<% if node and node.css then %><link rel="stylesheet" href="<%=resource%>/<%=node.css%>"><% end %>
+	<% if css then %><style><%=css%></style><% end %>
+	<script src="<%=media%>/i18n/<%=locale%>.js?v=<%=version%>"></script>
+	<script src="<%=media%>/carbon.js?v=<%=version%>"></script>
+	<script src="<%=dispatcher.build_url("admin/translations", lang)%>"></script>
+	<script src="<%=resource%>/cbi.js"></script>
+</head>
+<body class="lang_<%=esc(lang)%><% if is_login then %> cb-login<% end %>" data-page="<%=esc(table.concat((luci and luci.dispatcher and luci.dispatcher.context and luci.dispatcher.context.requestpath) or {}, "-"))%>">
+<% if is_login then %>
+	<div class="cb-login-wrap"><div class="cb-login-brand"><img class="cb-login-logo" src="<%=logo%>" alt=""><h1><%=esc(hostname)%></h1></div><div id="maincontent" class="cb-login-card">
+<% elseif not (blank_page) then %>
+	<div class="cb-app" data-traffic-source="<%=traffic%>"<% if dashboard_attr ~= "" then %> data-dashboard="<%=esc(dashboard_attr)%>"<% end %><% if simple_menu_attr ~= "" then %> data-simple-menu="<%=esc(simple_menu_attr)%>"<% end %>>
+		<aside class="cb-sidebar" id="cb-sidebar">
+			<button type="button" class="cb-collapse" id="cb-collapse" aria-label="Collapse sidebar"></button>
+			<a class="cb-brand" href="<%=dispatcher.build_url()%>"><img class="cb-brand-logo" src="<%=logo%>" alt=""><span class="cb-brand-text"><strong><%=esc(hostname)%></strong><% if model ~= "" then %><small><%=esc(model)%></small><% end %></span></a>
+			<div class="cb-mode" id="cb-mode"></div><nav class="cb-nav" id="topmenu" style="display:none"></nav><div class="cb-sidebar-foot" id="cb-sidebar-foot"></div>
+		</aside>
+		<div class="cb-scrim" id="cb-scrim"></div>
+		<main class="cb-main"><header class="cb-toolbar"><button type="button" class="cb-burger" id="cb-burger" aria-label="Menu"><span></span></button><div class="cb-title" id="cb-title"><%=esc(page_title)%></div><div class="cb-appearance" id="cb-appearance"></div><div id="indicators" class="cb-indicators"></div></header>
+		<div id="maincontent" class="cb-content"><div id="tabmenu" style="display:none"></div>
+<% end %>

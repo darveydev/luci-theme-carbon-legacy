@@ -1,0 +1,6 @@
+#!/bin/sh
+
+uci -q get luci.themes.Carbon >/dev/null || uci set luci.themes.Carbon=/luci-static/carbon
+uci set luci.main.mediaurlbase=/luci-static/carbon
+uci commit luci
+exit 0

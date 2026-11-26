@@ -1,0 +1,10 @@
+<%# Carbon Legacy theme footer %>
+<% local util = require "luci.util" %>
+<% if duser ~= nil then %>
+	</div><p class="cb-login-foot"><%=util.pcdata((luci.version and luci.version.distname) or "OpenWrt")%></p></div>
+<% elseif not blank_page then %>
+	</div><footer class="cb-footer"><span>Carbon · LuCI</span></footer></main></div>
+	<script>L.require('menu-carbon')</script>
+<% end %>
+</body>
+</html>

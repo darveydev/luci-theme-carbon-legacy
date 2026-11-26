@@ -1,0 +1,15 @@
+# build output
+dist/
+dist-legacy/
+.cache/
+.private/
+*.private.pem
+__pycache__/
+
+# OS / editor / local workspace
+.DS_Store
+*.swp
+.idea/
+.vscode/
+node_modules/
+.workbuddy/

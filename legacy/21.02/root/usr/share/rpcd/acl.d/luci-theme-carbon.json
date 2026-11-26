@@ -1,0 +1,49 @@
+{
+	"luci-theme-carbon": {
+		"description": "Grant the Carbon theme read-only access to system status sources (CPU, memory, storage, ARP, temperature, wireless status) and write access to its own layout settings",
+		"read": {
+			"file": {
+				"/proc/stat": [ "read" ],
+				"/proc/meminfo": [ "read" ],
+				"/proc/net/arp": [ "read" ],
+				"/proc/net/dev": [ "read" ],
+				"/proc/loadavg": [ "read" ],
+				"/proc/uptime": [ "read" ],
+				"/proc/mounts": [ "read" ],
+				"/proc/partitions": [ "read" ],
+				"/proc/sys/net/netfilter/nf_conntrack_count": [ "read" ],
+				"/proc/sys/net/netfilter/nf_conntrack_max": [ "read" ],
+				"/sys/class/thermal": [ "list" ],
+				"/sys/class/thermal/*/temp": [ "read" ],
+				"/sys/class/thermal/*/type": [ "read" ],
+				"/sys/class/hwmon": [ "list" ],
+				"/sys/class/hwmon/*/name": [ "read" ],
+				"/sys/class/hwmon/*/temp*_input": [ "read" ],
+				"/sys/class/hwmon/*/temp*_label": [ "read" ],
+				"/bin/df": [ "exec" ]
+			},
+			"ubus": {
+				"file": [ "read", "list", "stat" ],
+				"system": [ "board", "info" ],
+				"network.interface": [ "dump", "status" ],
+				"network.device": [ "status" ],
+				"network.wireless": [ "status" ],
+				"luci-rpc": [ "getNetworkDevices", "getDHCPLeases", "getHostHints", "getWirelessDevices" ],
+				"iwinfo": [ "assoclist", "info", "freqlist" ],
+				"luci": [ "getRealtimeStats", "getConntrackList" ],
+				"luci.carbon_update": [ "set_dashboard", "set_simple_menu" ]
+			},
+			"uci": [ "luci", "carbon" ]
+		},
+		"write": {
+			"file": {
+				"/etc/config/carbon": [ "write" ]
+			},
+			"ubus": {
+				"uci": [ "set", "commit", "apply" ],
+				"luci.carbon_update": [ "set_dashboard", "set_simple_menu" ]
+			},
+			"uci": [ "luci", "carbon" ]
+		}
+	}
+}
